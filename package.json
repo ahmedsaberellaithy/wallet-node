@@ -19,10 +19,14 @@
     "express": "^4.21.2",
     "mongoose": "^8.9.4",
     "pg": "^8.13.1",
-    "pg-pool": "^3.6.1"
+    "pg-hstore": "^2.3.4",
+    "pg-pool": "^3.6.1",
+    "sequelize": "^6.37.5",
+    "umzug": "^3.8.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "sequelize-cli": "^6.6.2"
   },
   "engines": {
     "node": ">=18.0.0"

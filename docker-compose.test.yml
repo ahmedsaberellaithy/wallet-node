@@ -38,6 +38,7 @@ services:
       dockerfile: Dockerfile.test
     environment:
       NODE_ENV: test
+      PORT: 3000
       # PostgreSQL Config
       PSQL_DB_HOST: postgres_test
       PSQL_DB_PORT: 5432
@@ -56,7 +57,7 @@ services:
       - /usr/src/app/node_modules
     command: >
       sh -c "
-        npm run test:e2e;
+        npm run test;
         EXIT_CODE=$$?;
         echo '=== Cleaning Up ===';
         docker-compose -f docker-compose.test.yml down -v;

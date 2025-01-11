@@ -36,14 +36,14 @@ services:
       timeout: 10s
       retries: 5
 
-  nestjs_app:
+  express_app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nestjs-app-prod
+    container_name: express-app-prod
     restart: unless-stopped
     ports:
-      - '3045:3000'
+      - '3000:3000'
     environment:
       NODE_ENV: production
       PORT: 3000

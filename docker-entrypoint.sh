@@ -1,15 +1,15 @@
 #!/bin/sh
 
 if [ "$NODE_ENV" = "development" ]; then
-    echo "Starting in development mode..."
-    npm install  # Ensure dev dependencies are installed
+    echo "Starting Express app in development mode..."
+    npm install
     npm run dev
 elif [ "$NODE_ENV" = "test" ]; then
-    echo "Starting in test mode..."
-    npm install  # Ensure test dependencies are installed
-    npm run test:e2e
+    echo "Starting Express app in test mode..."
+    npm install
+    npm run test
 else
-    echo "Starting in production mode..."
+    echo "Starting Express app in production mode..."
     npm ci --only=production
-    npm start
+    node src/app.js
 fi 

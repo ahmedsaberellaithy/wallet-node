@@ -12,4 +12,4 @@ CMD ["npm", "run", "dev"]
 FROM base as production
 RUN npm ci --only=production
 COPY . .
-CMD ["npm", "start"]
+CMD ["node", "src/app.js"]

@@ -5,9 +5,9 @@ services:
     container_name: postgres-db-dev
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${PSQL_DB_USER:-database_psql_user}
-      POSTGRES_PASSWORD: ${PSQL_DB_PASSWORD:-database_pass_123}
-      POSTGRES_DB: ${PSQL_DB_NAME:-vouchers-db}
+      POSTGRES_USER: ${PSQL_DB_USER:-db-dev-user}
+      POSTGRES_PASSWORD: ${PSQL_DB_PASSWORD:-db-dev-user-strong-pass}
+      POSTGRES_DB: ${PSQL_DB_NAME:-wallets-db-dev}
     ports:
       - '5432:5432'
     volumes:
@@ -18,56 +18,51 @@ services:
       timeout: 5s
       retries: 5
 
-  mongodb-dev:
-    image: mongo:6-jammy
-    container_name: mongodb-dev
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-mongo_dev_user}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-mongo_dev_pass}
-      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-reports-db-dev}
-    ports:
-      - '27017:27017'
-    volumes:
-      - mongodb_data_dev:/data/db
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 10s
-      retries: 5
+  # mongodb-dev:
+  #   image: mongo:6-jammy
+  #   container_name: mongodb-dev
+  #   restart: unless-stopped
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-mongo_dev_user}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-mongo_dev_pass}
+  #     MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-reports-db-dev}
+  #   ports:
+  #     - '27017:27017'
+  #   volumes:
+  #     - mongodb_data_dev:/data/db
+  #   healthcheck:
+  #     test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 5
 
-  nestjs_app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: nestjs-app-dev
-    restart: unless-stopped
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - '3045:3000'
-    environment:
-      NODE_ENV: development
-      PORT: 3000
-      # PostgreSQL Config
-      PSQL_DB_PORT: 5432
-      PSQL_DB_HOST: postgres-dev
-      PSQL_DB_USER: ${PSQL_DB_USER:-database_psql_user}
-      PSQL_DB_PASSWORD: ${PSQL_DB_PASSWORD:-database_pass_123}
-      PSQL_DB_NAME: ${PSQL_DB_NAME:-vouchers-db}
-      # MongoDB Config
-      MONGO_URI: mongodb://${MONGO_USER:-mongo_dev_user}:${MONGO_PASSWORD:-mongo_dev_pass}@mongodb-dev:27017/${MONGO_DB_NAME:-reports-db-dev}?authSource=admin
-      # App Config
-      THROTTLE_TTL: ${THROTTLE_TTL:-1000}
-      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-10}
-    depends_on:
-      postgres-dev:
-        condition: service_healthy
-      mongodb-dev:
-        condition: service_healthy
+  # express_app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: development
+  #   container_name: express-app-dev
+  #   restart: unless-stopped
+  #   volumes:
+  #     - .:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     NODE_ENV: development
+  #     PORT: 3000
+  #     # PostgreSQL Config
+  #     PSQL_DB_PORT: 5432
+  #     PSQL_DB_HOST: postgres-dev
+  #     PSQL_DB_USER: ${PSQL_DB_USER:-database_psql_user}
+  #     PSQL_DB_PASSWORD: ${PSQL_DB_PASSWORD:-database_pass_123}
+  #     PSQL_DB_NAME: ${PSQL_DB_NAME:-wallets-db}
+  #     # MongoDB Config
+  #     MONGO_URI: mongodb://${MONGO_USER:-mongo_dev_user}:${MONGO_PASSWORD:-mongo_dev_pass}@mongodb-dev:27017/${MONGO_DB_NAME:-reports-db-dev}?authSource=admin
+  #   depends_on:
+  #     postgres-dev:
+  #       condition: service_healthy
 
 volumes:
   postgres_data_dev:
-  mongodb_data_dev: 
+  # mongodb_data_dev: 
