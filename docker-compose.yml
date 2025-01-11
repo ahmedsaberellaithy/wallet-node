@@ -1,0 +1,69 @@
+# Production configuration
+services:
+  postgres-prod:
+    image: postgres:15-alpine
+    container_name: postgres-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PSQL_DB_USER}
+      POSTGRES_PASSWORD: ${PSQL_DB_PASSWORD}
+      POSTGRES_DB: ${PSQL_DB_NAME}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PSQL_DB_USER} -d ${PSQL_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb-prod:
+    image: mongo:6-jammy
+    container_name: mongodb-prod
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data_prod:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  nestjs_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs-app-prod
+    restart: unless-stopped
+    ports:
+      - '3045:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # PostgreSQL Config
+      PSQL_DB_PORT: 5432
+      PSQL_DB_HOST: postgres-db-prod
+      PSQL_DB_USER: ${PSQL_DB_USER}
+      PSQL_DB_PASSWORD: ${PSQL_DB_PASSWORD}
+      PSQL_DB_NAME: ${PSQL_DB_NAME}
+      # MongoDB Config
+      MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb-prod:27017/${MONGO_DB_NAME}?authSource=admin
+      # App Config
+      THROTTLE_TTL: ${THROTTLE_TTL:-1000}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
+    depends_on:
+      postgres-prod:
+        condition: service_healthy
+      mongodb-prod:
+        condition: service_healthy
+
+volumes:
+  postgres_data_prod:
+  mongodb_data_prod: 

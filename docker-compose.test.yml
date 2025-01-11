@@ -1,0 +1,64 @@
+# Test Container configuration
+services:
+  postgres_test:
+    image: postgres:15-alpine
+    container_name: postgres-test-db
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"  # Different port from dev/prod
+    tmpfs: /var/lib/postgresql/data  # Use tmpfs for faster testing
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  mongodb_test:
+    image: mongo:6-jammy
+    container_name: mongodb-test
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test_user
+      MONGO_INITDB_ROOT_PASSWORD: test_password
+      MONGO_INITDB_DATABASE: test_db
+    ports:
+      - "27018:27017"  # Different port from dev/prod
+    tmpfs: /data/db  # Use tmpfs for faster testing
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  test_runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      NODE_ENV: test
+      # PostgreSQL Config
+      PSQL_DB_HOST: postgres_test
+      PSQL_DB_PORT: 5432
+      PSQL_DB_USER: test_user
+      PSQL_DB_PASSWORD: test_password
+      PSQL_DB_NAME: test_db
+      # MongoDB Config
+      MONGO_URI: mongodb://test_user:test_password@mongodb_test:27017/test_db?authSource=admin
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+      mongodb_test:
+        condition: service_healthy
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: >
+      sh -c "
+        npm run test:e2e;
+        EXIT_CODE=$$?;
+        echo '=== Cleaning Up ===';
+        docker-compose -f docker-compose.test.yml down -v;
+        exit $$EXIT_CODE
+      " 
